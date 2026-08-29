@@ -14,6 +14,7 @@ counter is used as ground truth throughout.
 """
 
 import os
+import random
 import time
 
 from pathlib import Path
@@ -45,9 +46,9 @@ DRY_RUN = False
 MAX_BATCHES = None
 
 # Small pauses so Instagram has time to update its UI.
-CLICK_DELAY_MS = 100
-SCROLL_WAIT_MS = 1000
-AFTER_UNLIKE_MS = 5000
+CLICK_DELAY_MS = 80
+SCROLL_WAIT_MS = 900
+AFTER_UNLIKE_MS = 4500
 
 # Pause after each unliked batch, before refreshing the
 # page for the next one.
@@ -92,6 +93,29 @@ FIND_TILES_JS = """
 # ============================================================
 # PAGE HELPERS
 # ============================================================
+
+def wait(page, ms):
+    """
+    Sleep with ±5% random jitter so the bot's timing
+    doesn't tick like a metronome.
+    """
+
+    page.wait_for_timeout(ms * random.uniform(0.95, 1.05))
+
+
+def human_click(page, point, spread=3):
+    """
+    Click near (not exactly on) a point, holding the button
+    for a human-ish random moment — real clicks never land
+    on the same pixel twice, nor release after exactly 0ms.
+    """
+
+    page.mouse.click(
+        point["x"] + random.uniform(-spread, spread),
+        point["y"] + random.uniform(-spread, spread),
+        delay=random.uniform(40, 120),
+    )
+
 
 def find_text_points(page, text):
     """
@@ -170,7 +194,7 @@ def click_text(page, text):
     if not points:
         return False
 
-    page.mouse.click(points[0]["x"], points[0]["y"])
+    human_click(page, points[0], spread=2)
 
     return True
 
@@ -374,7 +398,7 @@ def scroll_items_section(page, delta):
     before = grid_scroll_state(page)
 
     def moved():
-        page.wait_for_timeout(300)
+        wait(page, 300)
 
         if grid_moved(before, grid_scroll_state(page)):
             restore_window_scroll(page, before)
@@ -493,10 +517,10 @@ def enter_select_mode(page):
     for _ in range(30):
         if click_text(page, "Select"):
             print("Entered selection mode.")
-            page.wait_for_timeout(1000)
+            wait(page, 1000)
             return
 
-        page.wait_for_timeout(250)
+        wait(page, 250)
 
     raise RuntimeError('Could not find the "Select" button.')
 
@@ -537,15 +561,15 @@ def select_batch(page):
 
             url_before = page.url
 
-            page.mouse.click(point["x"], point["y"])
+            human_click(page, point, spread=6)
 
-            page.wait_for_timeout(CLICK_DELAY_MS)
+            wait(page, CLICK_DELAY_MS)
 
             # Safety: if the click opened the reel viewer
             # instead of toggling, back out immediately.
             if page.url != url_before:
                 page.go_back()
-                page.wait_for_timeout(1000)
+                wait(page, 1000)
                 continue
 
             new_count = get_selected_count(page)
@@ -576,7 +600,7 @@ def select_batch(page):
 
         scroll_items_section(page, 1400)
 
-        page.wait_for_timeout(SCROLL_WAIT_MS)
+        wait(page, SCROLL_WAIT_MS)
 
     print()
 
@@ -713,7 +737,7 @@ def bulk_unlike(page):
 
         if remaining is None or remaining == 0:
             print("Unlike confirmed.")
-            page.wait_for_timeout(AFTER_UNLIKE_MS)
+            wait(page, AFTER_UNLIKE_MS)
             return
 
         points = find_text_points(page, "Unlike")
@@ -724,7 +748,7 @@ def bulk_unlike(page):
         )
 
         if not points:
-            page.wait_for_timeout(1000)
+            wait(page, 1000)
             continue
 
         # Every third attempt, click from inside the page
@@ -746,9 +770,9 @@ def bulk_unlike(page):
                         + (p["y"] - cy) ** 2,
                 )
 
-            page.mouse.click(target["x"], target["y"])
+            human_click(page, target, spread=2)
 
-        page.wait_for_timeout(1500)
+        wait(page, 1500)
 
     dump_debug(page, "unlike")
 
@@ -775,10 +799,10 @@ def refresh_likes_page(page):
 
     for _ in range(40):
         if list_tiles(page):
-            page.wait_for_timeout(1000)
+            wait(page, 1000)
             return True
 
-        page.wait_for_timeout(500)
+        wait(page, 500)
 
     return False
 
@@ -918,7 +942,7 @@ def main():
                         "before the next batch..."
                     )
 
-                    page.wait_for_timeout(BATCH_PAUSE_MS)
+                    wait(page, BATCH_PAUSE_MS)
 
                     if not refresh_likes_page(page):
                         print(

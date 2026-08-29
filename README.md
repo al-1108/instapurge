@@ -41,7 +41,7 @@ Constants at the top of `main.py`:
 | `BATCH_SIZE` | `27` | Items per batch (Instagram's per-session load limit). |
 | `BATCH_PAUSE_MS` | `2500` | Pause between batches. Raise it if worried about rate limits. |
 
-## Caveats
+## Warning
 
 - Unliking is permanent. Test with `DRY_RUN` / `MAX_BATCHES = 1` first.
 - Automation is against Instagram's ToS — use at your own risk.
