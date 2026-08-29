@@ -3,6 +3,8 @@
 Bulk-unlikes posts and reels from Instagram's **Your activity → Likes**
 page using a visible Chromium browser driven by Playwright.
 
+Roughly **`5000` reels/posts** are unliked per hour at default constants.
+
 Works in batches: select up to 27 items (the most Instagram loads per
 selection session), press Unlike, confirm, refresh, repeat until done.
 
@@ -22,8 +24,8 @@ python main.py
 ```
 
 Log into Instagram in the browser window on the first run (saved to
-`ig-profile/`), then press ENTER in the terminal to start. Stop any
-time with Ctrl+C.
+`ig-profile/`), then press ENTER in the terminal to start. **Stop any
+time with `Ctrl+C`.**
 
 A **Sort & filter** choice (e.g. Content type → Reels) only applies to
 the first batch — the between-batch refresh resets it.
