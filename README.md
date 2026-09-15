@@ -36,9 +36,8 @@ Constants at the top of `main.py`:
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `DRY_RUN` | `False` | `True` = select only, never unlike. Test with this first. |
+| `DRY_RUN` | `False` | `True` = if true, select only, never unlike. Test with this first. |
 | `MAX_BATCHES` | `None` | Batches to run. `None` = until done; `1` = single-batch test. |
-| `BATCH_SIZE` | `27` | Items per batch (Instagram's per-session load limit). |
 | `BATCH_PAUSE_MS` | `2500` | Pause between batches. Raise it if worried about rate limits. |
 
 ## Warning
